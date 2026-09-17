@@ -1,0 +1,16 @@
+007 does not use corpus/fixtures/. That directory is for extraction evals
+(real redacted email + labels, LLM in the loop) and comes later.
+
+007 is a parser. Build its own synthetic .eml fixtures in tests/fixtures/ —
+small, purpose-built, committed, no PII. Cover at minimum:
+
+  - plain text, simple
+  - ISO-2022-JP body with base64 RFC 2047 headers
+  - quoted-printable with a soft line break mid-word
+  - multipart/alternative (text + html), html containing a table
+  - a nested quoted forward
+  - an attachment (preserved as bytes, not decoded)
+  - a lying charset: declares us-ascii, contains UTF-8
+
+Synthetic is preferred over real email here: each fixture should isolate one
+parsing behaviour so a failure names its cause.

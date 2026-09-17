@@ -37,3 +37,10 @@ order, which the reviewer sees and line-precision measures. The two errors
 are not equally bad.
 
 See openspec/specs/capture-model.md and docs/corpus-spec.html.
+
+
+/opsx:propose Implement the OpenAI-compatible provider: the live HTTP client
+behind the Provider interface. Reads TC_LLM_BASE_URL, TC_LLM_API_KEY,
+TC_LLM_MODEL, TC_LLM_TIMEOUT_S from config. Structured output only. Never put
+secrets or client holdings in a prompt. Wrap with RecordingProvider when
+TC_LLM_RECORD=1. See openspec/specs/extraction.md.

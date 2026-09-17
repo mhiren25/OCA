@@ -14,3 +14,26 @@ small, purpose-built, committed, no PII. Cover at minimum:
 
 Synthetic is preferred over real email here: each fixture should isolate one
 parsing behaviour so a failure names its cause.
+
+/opsx:propose Sanitize: identify the live instruction region within an email
+thread, and segment the rest.
+
+Output is ANNOTATIONS OVER THE ORIGINAL TEXT — labelled spans — never a
+rewritten string. Rewriting invalidates the character offsets ParsedEmail
+recorded, and provenance depends on those.
+
+Segment, never delete: signatures, disclaimers, mobile footers and injected
+banners are labelled, not stripped. A signature often carries the account or
+the authority; and a banner like "Learn why this is important" sits exactly
+where an instruction would.
+
+Live region: handle the structural cases in code — "From:/Sent:/To:" dividers,
+"On <date> X wrote:", ">" prefixes, HTML blockquote. When the boundary is
+genuinely ambiguous, mark it so rather than guessing.
+
+Bias toward INCLUSION. Excluding a live region silently drops a real client
+order, which nothing downstream catches. Including history risks a phantom
+order, which the reviewer sees and line-precision measures. The two errors
+are not equally bad.
+
+See openspec/specs/capture-model.md and docs/corpus-spec.html.

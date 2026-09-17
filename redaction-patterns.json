@@ -1,0 +1,15 @@
+{
+  "_comment": "Account-number shapes vary by institution. Run `scan` first, look at what it reports, then tune. Names cannot be detected reliably \u2014 scan surfaces candidates, you confirm them here.",
+  "account_patterns": [
+    "\\b\\d{3}-\\d{5}-\\d{2}\\b",
+    "\\b[A-Z]{2}\\d{8,12}\\b",
+    "\\b\\d{9,14}\\b"
+  ],
+  "names": [
+    "Frank Tso",
+    "Esther Lim",
+    "Frank",
+    "Esther",
+    "Peng Bao"
+  ]
+}

@@ -1,0 +1,12 @@
+split: dev            # dev | holdout
+
+tags:
+  - sell-all-with-figure    # client said BOTH "all" and a number
+  - bare-name               # instrument as a name, no ticker
+  - algo-instruction        # "at vwap over the day"
+  - boilerplate-heavy       # mobile signature
+  - single-line
+
+labelled_by: [shreya, REPLACE-ME]   # two people, independently, for the first ten
+labelled_at: 2026-09-17
+disagreements: 0                     # record these — they are your accuracy ceiling

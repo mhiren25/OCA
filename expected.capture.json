@@ -1,0 +1,98 @@
+{
+  "_schema": "capture.v1",
+  "_note": "Labelled by hand. This is EXTRACTION output only — enrichment has not run, so instrument.resolved and account_ref resolution are null.",
+  "envelope": {
+    "sender_address": "user001xx@example1.invalid",
+    "language": "en",
+    "live_region": {
+      "part": "BODY_TEXT",
+      "start": 0,
+      "end": 145
+    },
+    "_comment_live_region": "No quoted thread here — the whole body is live."
+  },
+  "lines": [
+    {
+      "line_index": 0,
+      "side": {
+        "state": "MAPPED",
+        "value": "SELL",
+        "provenance": {
+          "part": "BODY_TEXT",
+          "start": 31,
+          "end": 35,
+          "excerpt": "sell"
+        }
+      },
+      "instrument": {
+        "raw_text": "Sunrise Energy Metals",
+        "form": "NAME",
+        "stated_currency": null,
+        "stated_venue": null,
+        "resolved": null,
+        "provenance": {
+          "part": "BODY_TEXT",
+          "start": 59,
+          "end": 80,
+          "excerpt": "Sunrise Energy Metals"
+        }
+      },
+      "quantity": {
+        "kind": "EntirePosition",
+        "client_asserted": "91647",
+        "resolved_position": null,
+        "provenance": {
+          "part": "BODY_TEXT",
+          "start": 36,
+          "end": 48,
+          "excerpt": "all (91,647)"
+        }
+      },
+      "execution": {
+        "order_type": {
+          "state": "UNRESOLVED",
+          "raw_text": null
+        },
+        "limit_price": null,
+        "strategy": {
+          "state": "MAPPED",
+          "value": "VWAP",
+          "provenance": {
+            "part": "BODY_TEXT",
+            "start": 84,
+            "end": 88,
+            "excerpt": "vwap"
+          }
+        },
+        "horizon": {
+          "state": "MAPPED",
+          "value": "DAY",
+          "provenance": {
+            "part": "BODY_TEXT",
+            "start": 89,
+            "end": 101,
+            "excerpt": "over the day"
+          }
+        },
+        "expiry": {
+          "state": "UNRESOLVED"
+        }
+      },
+      "trade_date": {
+        "state": "UNRESOLVED"
+      },
+      "account_ref": {
+        "state": "UNRESOLVED",
+        "raw_text": "Peng Bao",
+        "provenance": {
+          "part": "BODY_TEXT",
+          "start": 14,
+          "end": 22,
+          "excerpt": "Peng Bao"
+        }
+      },
+      "unmapped": []
+    }
+  ],
+  "unmapped": []
+}

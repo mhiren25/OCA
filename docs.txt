@@ -65,3 +65,38 @@ where the order lives	embedded-image has-attachment pdf-attachment
 language	non-english mixed-language cjk-encoding
 content	fund-order constraint voicelog limit-order strategy-stated
 not an order	negative-no-order negative-enquiry negative-confirmation
+
+
+Fixtures done is the milestone — everything from here has something to measure against.
+
+Before writing any more code (30 minutes):
+
+bash
+python scripts/build_fixture.py corpus/fixtures/ --check   # all of them, writes nothing
+git add corpus/fixtures && git commit -m "corpus: first labelled fixtures"
+
+Commit them now and note the hash. Every eval run pins the corpus commit (CO-7), and a run against uncommitted fixtures is a number you can't reproduce.
+
+Splits: leave everything on dev. You can't hold out from ten — removing a holdout leaves a dev set too small for a 1-fixture difference to mean anything. Assign the holdout when you're past about forty.
+
+The schema: corpus/schema/README.md promises a capture.v1.schema.json generated from the 001 Pydantic models, and it doesn't exist yet. One command on your machine, roughly:
+
+bash
+python -c "import json;from trade_capture.domain.capture import CaptureModel;\
+print(json.dumps(CaptureModel.model_json_schema(),indent=2))" \
+  > corpus/schema/capture.v1.schema.json
+
+Adjust the import to whatever 001 actually named it. Worth doing now because it's the thing that catches a fixture whose shape drifts from the model.
+
+Then three changes, in this order:
+
+		gives you
+006 + 009	cassettes + live client	model access
+010	extractor.py + prompt v1	the first actual extraction
+013	eval runner	the first number
+
+006 and 009 pair — cassettes are useless without a client to record, so run them as one. Use /opsx:apply for 009, subagent-driven-development for 010: prompt v1 is where the domain model and corpus spec finally get consumed, since the prompt has to describe the CaptureModel to the LLM and the tri-state rules are what stop it fabricating.
+
+Expect the first eval run to look bad. That's the point — it's a baseline, not a result.
+
+One thing I'd check: did two people label these independently, or just you? If just you, spend an hour having Hiren re-label three at random without looking at yours. Systematic label bias is invisible from inside, and once you've tuned a prompt against a biased corpus you're optimising toward the bias.

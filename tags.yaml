@@ -1,0 +1,59 @@
+# Phenomenon tags — the closed vocabulary for `tags:` in a fixture's label.yaml.
+#
+# WHY CLOSED
+#
+# Tags drive the per-tag breakdown in the eval report, which is how you find
+# *categories* of failure instead of chasing the headline number. Free-form
+# tags fragment: `multiline`, `multi-line` and `multi_line` become three
+# buckets of one fixture each, and the breakdown stops being a signal.
+#
+# ADDING ONE
+#
+# Finding a phenomenon this list does not cover is a good outcome, not a
+# blocker. Add it here in its own commit, with a one-line reason, so a new tag
+# stays a deliberate claim about the corpus rather than a typo in a label.
+# `build_fixture.py` rejects any tag not listed here.
+#
+# A tag describes what the EMAIL does, never how well the extractor did on it.
+
+structure:
+  tabular:            An order table — column header plus data rows.
+  multi-line:         More than one order in one email.
+  quoted-thread:      Earlier messages quoted below; only the top is live.
+  forwarded:          Relayed by staff, so the sender is not the client.
+
+instrument_reference:
+  bloomberg-ticker:   "Given as a ticker, e.g. `MRVL US EQUITY`."
+  isin-stated:        ISIN given explicitly.
+  name-only:          Free-text name, no identifier. The common hard case.
+  ambiguous-instrument: Name matches more than one instrument. Expect Unresolved.
+
+quantity:
+  sell-all:           "\"all\" / \"entire position\", with or without a figure."
+  quantity-in-words:  "Spelled out, e.g. \"two hundred thousand\"."
+  percentage:         A share of the holding rather than a count.
+  cash-amount:        A notional sum rather than a unit count.
+
+where_the_order_lives:
+  embedded-image:     Order content inside a pasted screenshot. No regex reaches it.
+  has-attachment:     Non-image attachment present.
+  pdf-attachment:     Order content inside an attached PDF.
+
+language:
+  non-english:        Body is not English.
+  mixed-language:     Two languages in one body.
+  cjk-encoding:       ISO-2022-JP, Shift-JIS, GB2312 — encoding is part of the test.
+
+content:
+  fund-order:         Subscription, redemption or switch rather than a listed trade.
+  constraint:         "A client restriction, e.g. \"no short selling\"."
+  voicelog:           Instruction to call the client back. Not part of the order.
+  limit-order:        A price limit is stated.
+  strategy-stated:    VWAP, TWAP, at close, and so on.
+
+not_an_order:
+  # 15-20% of the corpus. These are where fabrication is likeliest and worst:
+  # nothing in the email constrains the model, so an eager one invents a trade.
+  negative-no-order:      No instruction to trade at all.
+  negative-enquiry:       A question about a position or price.
+  negative-confirmation:  Acknowledgement of a trade already placed.

@@ -1,0 +1,177 @@
+# 0001-fw-order-multi
+#
+# 7 order(s) found by reading the table columns.
+#
+# EDIT THIS FILE. NOTHING ELSE. Then:
+#     python scripts/build_fixture.py corpus/fixtures/0001-fw-order-multi
+#
+# 1. COUNT THE ORDERS FIRST. Add or delete `orders:` entries until there
+#    is exactly one per order the client gave. Line recall is a hard 100%
+#    gate, so a missing entry lowers the bar instead of failing loudly.
+# 2. Copy values from the email VERBATIM. build_fixture.py finds each one
+#    in the body to derive its offsets — a paraphrase will not be found.
+# 3. Leave a field blank if the client did not state it. Blank is a real
+#    answer (Unresolved), not an omission.
+# 4. Tags must come from corpus/schema/tags.yaml.
+#
+# NOTE: header: 'Trade date\tOrders\tSecurity\tTicker\tCCY\tQTY\tPrice'
+#
+# NOTE: several account references: A/C 000-000000-35 | AC name: Tan Kok Hiong
+#
+# Not scanned: signature. If a real instruction lives
+# down there, add it by hand.
+
+split: dev                 # dev | holdout
+language: en               # ISO code of the body
+
+tags:
+  - bloomberg-ticker
+  - constraint
+  - multi-line
+  - tabular
+  - voicelog
+
+# Applies to every order below unless an order sets its own.
+account: "000-000000-35"
+constraints:
+  - Please ensure that there is no short selling for sell order
+
+orders:
+
+  # row 1
+  - side:        BUY
+    instrument:  SIEMENS ENERGY A
+    ticker:      ENR GY EQUITY
+    isin:
+    quantity:    290
+    quantity_asserted:   # only with `quantity: all` — the figure in "sell all (91,647)"
+    currency:    EUR
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  31-Jul-26
+    account:
+    unmapped: []          # client said something the schema can't hold
+
+  # row 2
+  - side:        BUY
+    instrument:  FUJIKURA LTD
+    ticker:      5803 JT EQUITY
+    isin:
+    quantity:    3900
+    quantity_asserted:
+    currency:    JPY
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  3-Aug-26
+    account:
+    unmapped: []
+
+  # row 3
+  - side:        BUY
+    instrument:  FURUKAWA ELECT
+    ticker:      5801 JT EQUITY
+    isin:
+    quantity:    5100
+    quantity_asserted:
+    currency:    JPY
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  3-Aug-26
+    account:
+    unmapped: []
+
+  # row 4
+  - side:        BUY
+    instrument:  ALPHABET INC-A
+    ticker:      GOOGL US EQUITY
+    isin:
+    quantity:    230
+    quantity_asserted:
+    currency:    USD
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  31-Jul-26
+    account:
+    unmapped: []
+
+  # row 5
+  - side:        SELL
+    instrument:  EVERCORE INC
+    ticker:      EVR US EQUITY
+    isin:
+    quantity:    600
+    quantity_asserted:
+    currency:    USD
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  31-Jul-26
+    account:
+    unmapped: []
+
+  # row 6
+  - side:        BUY
+    instrument:  MARVELL TECHNOLO
+    ticker:      MRVL US EQUITY
+    isin:
+    quantity:    820
+    quantity_asserted:
+    currency:    USD
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  31-Jul-26
+    account:
+    unmapped: []
+
+  # row 7
+  - side:        BUY
+    instrument:  LASERTEC CORP
+    ticker:      6920 JT EQUITY
+    isin:
+    quantity:    400
+    quantity_asserted:
+    currency:    JPY
+    order_type:  MKT
+    limit_price:
+    strategy:
+    horizon:
+    trade_date:  3-Aug-26
+    account:
+    unmapped: []
+
+notes: |
+  Why this fixture exists, and every judgement call made labelling it.
+  Kept for the table-reading path.
+
+labelled_by: [shreya, hiren]
+disagreements: []
+
+# ---------------------------------------------------------------------
+# The client's own words, for reference. Do not edit.
+#
+#   Dear Team,
+#   
+#   Please voicelog Gek Leng at +00 0000 0034 for the following.
+#   A/C 000-000000-35  AC name: Tan Kok Hiong
+#   
+#   Trade date	Orders	Security	Ticker	CCY	QTY	Price
+#   31-Jul-26	BUY	SIEMENS ENERGY A	ENR GY EQUITY	EUR	290	MKT
+#   3-Aug-26	BUY	FUJIKURA LTD	5803 JT EQUITY	JPY	3900	MKT
+#   3-Aug-26	BUY	FURUKAWA ELECT	5801 JT EQUITY	JPY	5100	MKT
+#   31-Jul-26	BUY	ALPHABET INC-A	GOOGL US EQUITY	USD	230	MKT
+#   31-Jul-26	SELL	EVERCORE INC	EVR US EQUITY	USD	600	MKT
+#   31-Jul-26	BUY	MARVELL TECHNOLO	MRVL US EQUITY	USD	820	MKT
+#   3-Aug-26	BUY	LASERTEC CORP	6920 JT EQUITY	JPY	400	MKT
+#   
+#   Please ensure that there is no short selling for sell order.

@@ -293,3 +293,24 @@ These tests are red by design — they are written before the code exists. A mod
 Importing inside the test keeps collection clean, the marker keeps it out of the default run, and running it deliberately still fails with a clear ImportError. Red at the right moment.
 
 Then pytest bare should go green and you've got your baseline back for 010.
+
+Three small things first, then yes.
+
+1. Get pytest bare green — the test_validators.py import fix and the workflow.md rule. This isn't hygiene: 010 is the change you want subagent-driven-development on, and it refuses to start on a red baseline. Without it you'll either be blocked or tempted to work around the guard, which is worse.
+
+2. Close out 016 and 015.
+
+/opsx:verify
+/opsx:sync
+/opsx:archive
+
+for each. The sync on 015 is what puts the capture-model spec into openspec/specs/ — and that's what 010's prompt gets written from, so it wants to be there before you start rather than half-migrated.
+
+3. Commit the fixtures and the generated schema, and note the hash. Every eval run pins the corpus commit, and 010 is the first change whose output you'll compare against them.
+
+bash
+git add corpus/ && git commit -m "corpus: 18 labelled fixtures + capture.v1 schema"
+
+Then 010, with the proposal text I sent earlier.
+
+One thing I'd weigh: 010 is the highest-judgement change in the project. The prompt rules are where fabrication gets prevented or doesn't, and the failure mode is a prompt that looks fine and quietly teaches the model to fill gaps. It's the one where reading the agent's output carefully pays for itself several times over — worth starting on a fresh session rather than at the end of this one, whatever the clock says where you are.

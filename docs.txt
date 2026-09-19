@@ -270,3 +270,26 @@ def test_cost_arithmetic_holds():
     ...
 
 Collection then succeeds, the marker excludes it from the default run, and running it gives a clear ImportError — still red by design, but red at the right moment. Worth adding to docs/workflow.md as a rule, since every future pre-written acceptance test hits this the same way.
+
+Both my concerns are closed, and the verification is better than my speculation was — extra="forbid" on all four variants, additionalProperties: false 18 times in the schema. Nothing to do.
+
+One thing in that report worth keeping: the single additionalProperties: true is InstrumentDetail.resolved, untyped because enrichment's shape doesn't exist yet. That's the right call now, but it means the field carrying a resolved ISIN — the highest-stakes value in the system, and the one where a fabrication is worst — is the one field nothing validates. Put it on 005's list: when the resolver lands, resolved gets a real type.
+
+The pytest gap is yours. Both edits, so you can just do them:
+
+tests/acceptance/test_validators.py — move the import into each test body:
+
+python
+def test_cost_arithmetic_holds():
+    from trade_capture.validation.validators import cost_arithmetic_holds
+    ...
+
+docs/workflow.md — add under the acceptance-tests section:
+
+Acceptance tests import inside the test body, never at module scope.
+
+These tests are red by design — they are written before the code exists. A module-level from trade_capture.x import y for something unbuilt fails at collection, and -m 'not acceptance' deselects only after collection has finished. So one pre-written test file takes down the whole default pytest run, which is the green baseline Superpowers refuses to start work without.
+
+Importing inside the test keeps collection clean, the marker keeps it out of the default run, and running it deliberately still fails with a clear ImportError. Red at the right moment.
+
+Then pytest bare should go green and you've got your baseline back for 010.

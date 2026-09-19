@@ -100,3 +100,44 @@ Then three changes, in this order:
 Expect the first eval run to look bad. That's the point — it's a baseline, not a result.
 
 One thing I'd check: did two people label these independently, or just you? If just you, spend an hour having Hiren re-label three at random without looking at yours. Systematic label bias is invisible from inside, and once you've tuned a prompt against a biased corpus you're optimising toward the bias.
+
+
+Two minutes of verification on 009, since it's already built and one of its failure modes isn't recoverable:
+
+bash
+grep -ril "authorization\|api[-_]key\|bearer" corpus/ tests/ | head
+TC_LLM_RECORD=1 python -c "..."   # record one exchange, then:
+cat <cassette>.json | python -m json.tool | grep -i "auth\|key\|token"
+
+If a credential is in a recorded exchange, fix it before the first cassette is committed. After that it's a key rotation.
+
+Next is 010 — extractor + prompt v1. No draft exists, so:
+
+/opsx:new 010-extractor-prompt-v1
+
+Paste as the proposal:
+
+Implement extraction/extractor.py and prompt v1. One LLM call per email: input is the sanitized live region from 008 plus envelope metadata, output is a CaptureModel.
+
+The prompt lives in a versioned module exporting PROMPT_VERSION and a content hash, both of which flow into the Exchange from 006 so a prompt change invalidates cassettes rather than replaying stale answers.
+
+The LLM does not emit character offsets. It quotes the client's words verbatim as raw_text for each field, and code locates those quotes in the body to derive provenance — the same placement logic scripts/build_fixture.py uses for labels: anchor each order on its most distinctive value, resolve the rest by proximity. Models are unreliable at counting characters, and a plausible-but-wrong offset is worse than none because it points a reviewer at the wrong words. Factor the locator out of build_fixture.py into a shared module so the corpus and the runtime agree by construction.
+
+Prompt rules, each of which must have a fixture behind it:
+
+Never invent a value. If the client did not say it, the field is Unresolved. A fabricated value is the only error class gated at zero.
+"Sell all" is EntirePosition, never a number. A figure in parentheses is client_asserted — the client's belief about the position — not the order quantity.
+One lines[] entry per order. Never merge two orders, never drop one. Line recall is a hard 100% gate.
+raw_text is quoted, never paraphrased, or the locator cannot place it.
+
+Response is validated against corpus/schema/capture.v1.schema.json. A response that does not validate is a failure, never silently coerced.
+
+No secret, token or client holding enters the prompt.
+
+Out of scope: enrichment via MCP, mapping to OrderRequest, attachment text.
+
+/opsx:ff
+
+Approve, then build it with subagent-driven-development rather than /opsx:apply — this is the substantial one, and the prompt deserves the task-by-task review loop.
+
+This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.

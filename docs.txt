@@ -181,4 +181,23 @@ The real acceptance test is that every existing fixture round-trips through the 
 
 Lane A is probably enough — it's composition over types that already exist.
 
+/opsx:new 016-tristate-discriminator
+bash
+cp docs/proposals/016-tristate-discriminator.md \
+   openspec/changes/016-tristate-discriminator/proposal.md
+/opsx:ff
+
+Approve it, /opsx:apply (it's a Literal on three classes plus tests), then resume 015 — its round-trip acceptance can now actually pass.
+
+One decision inside 016 that's yours. The discriminator value should be the class name — state: "Mapped", matching kind: "Absolute" — rather than the "MAPPED" my script currently emits, so both unions in that module tag themselves the same way.
+
+That means two edits neither the agent nor I can make for you: evals/scoring.py reads the new form, and build_fixture.py emits it. Both CODEOWNERS-protected, both mechanical.
+
+The fixtures cost nothing, which is the payoff from the label.yaml design landing before this came up:
+
+bash
+python scripts/build_fixture.py corpus/fixtures/
+
+Every expected.capture.json regenerates. No relabelling. Had you been hand-editing capture JSON, this change would have meant touching all ten by hand and a serialization detail would have been a reason not to fix the model — which is how inconsistencies like this survive.
+
 This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.

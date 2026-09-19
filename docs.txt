@@ -161,4 +161,24 @@ Send me the output and I'll fix build_fixture.py to match your models. Fix the w
 
 Do this before 010. The extractor's output gets validated against this same file, so it needs to be correct before anything is measured against it.
 
+So yes, say the word — but here's the proposal rather than letting it draft one, because the model and build_fixture.py have to be defined together or we'll hit the same wall from the other side.
+
+/opsx:new 015-capture-envelope
+bash
+cp docs/proposals/015-capture-envelope.md \
+   openspec/changes/015-capture-envelope/proposal.md
+/opsx:ff
+
+015 because 001–014 are all spoken for; the number doesn't imply order, and this one goes before 010 since the extractor's return type is this.
+
+Three things in it worth your eye before you approve:
+
+InstrumentRef.resolved is always None in a capture. Enrichment fills it, never the LLM. A fixture with a populated resolved is a labelling error.
+Constraints are email-level. "No short selling" governs the message, not row six.
+Zero lines is valid — that's how your negative fixtures are represented.
+
+The real acceptance test is that every existing fixture round-trips through the model. And when the model and build_fixture.py disagree — they will somewhere — the model wins. Send me the mismatch and I'll fix the writer. Don't let anyone loosen the model to accept what my script happens to emit, and don't hand-edit fixtures: they were labelled before the model existed, so a disagreement is real information about which side is wrong.
+
+Lane A is probably enough — it's composition over types that already exist.
+
 This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.

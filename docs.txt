@@ -314,3 +314,17 @@ git add corpus/ && git commit -m "corpus: 18 labelled fixtures + capture.v1 sche
 Then 010, with the proposal text I sent earlier.
 
 One thing I'd weigh: 010 is the highest-judgement change in the project. The prompt rules are where fabrication gets prevented or doesn't, and the failure mode is a prompt that looks fine and quietly teaches the model to fill gaps. It's the one where reading the agent's output carefully pays for itself several times over — worth starting on a fresh session rather than at the end of this one, whatever the clock says where you are.
+
+(a), and I don't think it's close.
+
+The deciding fact is in the finding itself: "Corpus fixtures don't have this problem." That means the eval cannot see this bug. scoring.py compares values, not spans — so the extractor could stamp every offset wrong and the corpus would report the same accuracy number it reports today. A defect the measurement system is blind to is the one kind you never defer, because "known limitation in design.md" decays into "nobody remembered" while everyone reads green numbers with confidence.
+
+And the blast radius isn't marginal. Any email with a quoted thread, a disclaimer, or a compliance banner before or between the live content — which in a bank is most of them — gets provenance pointing at the wrong words. Wrong offsets are worse than absent ones: a reviewer checking a draft before releasing a trade is shown text that didn't produce the value, and it looks authoritative. The whole argument for deriving offsets mechanically was that unverified provenance is worse than none. This is that, arriving from the runtime side.
+
+The agent is also right that now is the cheap moment, and that only gets truer.
+
+One steer on where the fix goes. Rather than passing the original body into extract(), have live_text() return the text and an offset map, with sanitize exposing something like to_source(offset) -> int. The concatenation is what creates the coordinate shift, so the module that does it should own the translation. The extractor then locates against live text and calls to_source — its signature stays honest, and nothing downstream has to know segments exist.
+
+That's an addition to 008's synced sanitize spec. I'd take it as a spec delta inside 010 rather than splitting it out: the mapping exists only to serve this, and a separate change leaves 010 blocked on one function. Reasonable people would split it for the same reason we split 016 — your call, but say which and write the reason down.
+
+Log one more thing while it's fresh, as a follow-on against evals: CM-4 says a span that doesn't contain the value it claims is a defect, and nothing enforces it. Scoring should verify that body[start:end] == raw_text for every mapped field. That's the check that would have caught this in the first place, and would catch the next offset regression. scoring.py is protected, so it's yours — but it's a small, high-value addition once 010 lands.

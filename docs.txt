@@ -200,4 +200,42 @@ python scripts/build_fixture.py corpus/fixtures/
 
 Every expected.capture.json regenerates. No relabelling. Had you been hand-editing capture JSON, this change would have meant touching all ten by hand and a serialization detail would have been a reason not to fix the model — which is how inconsistencies like this survive.
 
+Correct, and that's the boundary working. scoring.py is the referee — an agent that can edit it can make any eval pass, so it's yours. Same for build_fixture.py, which I'll do now.
+
+Ran 4 commands
+
+build_fixture.py now emits the class-name form, and Quantity.kind was already there. Your side is scoring.py, and it's smaller than it looks — the module compares against its own uppercase constants, so mapping once in _state leaves score_field untouched:
+
+python
+# Discriminator values are the class names (016), matching Quantity.kind.
+# Map them once, here, and refuse anything else.
+_STATES = {"Mapped": "MAPPED", "Unmapped": "UNMAPPED", "Unresolved": "UNRESOLVED"}
+
+
+def _state(node: Any) -> str:
+    if node is None:
+        return "UNRESOLVED"
+    if not isinstance(node, dict):
+        raise ValueError(f"not a tri-state node: {node!r}")
+    tag = node.get("state")
+    if tag not in _STATES:
+        raise ValueError(
+            f"unrecognised tri-state tag {tag!r}; expected one of "
+            f"{', '.join(_STATES)}. A node that reaches scoring without a "
+            "readable state is malformed — fix the producer, not this function.")
+    return _STATES[tag]
+
+That replaces the current four lines. Worth noticing what it also fixes: the version in there now ends return kind or "UNRESOLVED", so a dict arriving with no state key silently scores as Unresolved. Before 016 that was the only option. Now it's a real bug — a genuinely Mapped value with a malformed tag would score as a MISS, or an expected-Unmapped would pass its fabrication check against garbage. Both directions produce a wrong number that looks like a model result. Raising turns it into a stack trace on the first fixture instead.
+
+Since you're in the protected file, git diff evals/scoring.py before committing should show exactly those two hunks and nothing else — that file is the referee, and the point of the guard is that its history stays short and readable.
+
+Then rebuild and you're consistent end to end:
+
+bash
+python scripts/build_fixture.py corpus/fixtures/
+python scripts/gen_schema.py --validate
+pytest
+
+The --validate should now pass, which is 015's acceptance criterion and the thing that's been blocked since the schema question came up.
+
 This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.

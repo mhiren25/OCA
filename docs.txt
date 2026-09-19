@@ -140,4 +140,25 @@ Out of scope: enrichment via MCP, mapping to OrderRequest, attachment text.
 
 Approve, then build it with subagent-driven-development rather than /opsx:apply — this is the substantial one, and the prompt deserves the task-by-task review loop.
 
+
+Nowhere — it doesn't exist yet. It's generated from the Pydantic models that 001 built, which only live on your machine, so I couldn't write it for you. This finds them:
+
+bash
+source .venv/bin/activate
+python scripts/gen_schema.py --validate
+
+It searches trade_capture.domain for the top-level capture model rather than assuming what 001 named it, writes corpus/schema/capture.v1.schema.json, then checks every fixture against it. If it can't tell which class is the right one it prints the candidates and stops.
+
+The --validate half is the part that matters. build_fixture.py writes the capture shape by hand — I wrote it from the domain model doc, not from your actual generated code. Those two can disagree, and if they do, nothing catches it until an eval compares a model output against a fixture and reads the mismatch as a scoring failure rather than a shape failure. You'd spend a day tuning a prompt against a corpus the scorer can't read properly.
+
+Expect it to fail the first time. When it does:
+
+0003-fw-order-single: 2 problem(s)
+    lines.0.quantity.kind: 'EntirePosition' is not one of [...]
+    lines.0.side: 'MAPPED' is not of type 'object'
+
+Send me the output and I'll fix build_fixture.py to match your models. Fix the writer, not the schema — if the models are right, the fixtures follow; loosening the schema to make it pass just moves the disagreement somewhere it won't be noticed.
+
+Do this before 010. The extractor's output gets validated against this same file, so it needs to be correct before anything is measured against it.
+
 This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.

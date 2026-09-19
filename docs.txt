@@ -239,3 +239,34 @@ pytest
 The --validate should now pass, which is 015's acceptance criterion and the thing that's been blocked since the schema question came up.
 
 This is also the answer to your earlier question about where the domain model and corpus spec get used: the prompt is written from the domain model, and every rule in it should be traceable to a fixture in the corpus.
+
+
+That flag is a correction to me, and it's right. I asserted "001 already discriminates Quantity with kind" — but I got that from reading my own build_fixture.py, not from 001's models. I never checked. The agent looked and found no such field, and its reasoning for why is better than mine: Absolute, EntirePosition and UnresolvedQuantity have genuinely different fields, so a plain union resolves unambiguously. The tri-state doesn't, which is why it needed a tag. 016 stands on its own merits; my argument for it used a premise I hadn't verified.
+
+Corrected comment for when you're next in scoring.py:
+
+python
+# Discriminator values are the class names (016). Unlike Quantity — whose
+# variants differ structurally and resolve without a tag — Unmapped and
+# Unresolved are near-identical shapes, so the tag is what keeps CM-1's
+# three states apart on the way back from JSON.
+
+But that raises a real question, and I'd check it before moving on. My build_fixture.py writes {"kind": "Absolute"} into every quantity. If the model has no kind field, those 18 fixtures validated with an unknown key in them — which means the generated schema permits extras. A schema that accepts unknown keys can't catch the typo class we just spent a change guarding against on the label side.
+
+bash
+python -c "import json;s=json.load(open('corpus/schema/capture.v1.schema.json'));\
+print(json.dumps(s,indent=1)[:60]); print('additionalProperties' in json.dumps(s))"
+grep -n "kind" src/trade_capture/domain/quantity.py
+
+Two outcomes: if the model has no kind, I strip it from build_fixture.py (Pydantic will pick the variant structurally). If extras are permitted broadly, that's worth model_config = ConfigDict(extra="forbid") on the capture types — but that's a change, not a quiet edit.
+
+The pytest failure is the one I'd fix first, though, because it breaks something you depend on. A module-level ImportError fails at collection, and marker deselection happens after collection — so -m 'not acceptance' in addopts cannot protect the baseline from an acceptance test importing an unbuilt module. The green-baseline invariant Superpowers needs is not actually held by the mechanism I put in.
+
+The fix is a convention in tests/acceptance/ (yours — it's protected): import the thing under test inside the test body, not at module scope.
+
+python
+def test_cost_arithmetic_holds():
+    from trade_capture.validation.validators import cost_arithmetic_holds
+    ...
+
+Collection then succeeds, the marker excludes it from the default run, and running it gives a clear ImportError — still red by design, but red at the right moment. Worth adding to docs/workflow.md as a rule, since every future pre-written acceptance test hits this the same way.

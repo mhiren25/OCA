@@ -44,3 +44,24 @@ behind the Provider interface. Reads TC_LLM_BASE_URL, TC_LLM_API_KEY,
 TC_LLM_MODEL, TC_LLM_TIMEOUT_S from config. Structured output only. Never put
 secrets or client holdings in a prompt. Wrap with RecordingProvider when
 TC_LLM_RECORD=1. See openspec/specs/extraction.md.
+
+
+disagreements:
+  - field: orders[0].quantity
+    a: "Absolute 91647"
+    b: "EntirePosition, client_asserted 91647"
+    resolved: b
+    why: >
+      The client's instruction is "all". 91,647 is their belief about the
+      position size, which may be stale. Labelling it Absolute makes the
+      extractor pass by reading a number the client didn't order.
+
+
+axis	    tags
+structure	tabular multi-line quoted-thread forwarded
+instrument given as	bloomberg-ticker isin-stated name-only ambiguous-instrument
+quantity	sell-all quantity-in-words percentage cash-amount
+where the order lives	embedded-image has-attachment pdf-attachment
+language	non-english mixed-language cjk-encoding
+content	fund-order constraint voicelog limit-order strategy-stated
+not an order	negative-no-order negative-enquiry negative-confirmation

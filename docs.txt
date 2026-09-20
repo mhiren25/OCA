@@ -328,3 +328,29 @@ One steer on where the fix goes. Rather than passing the original body into extr
 That's an addition to 008's synced sanitize spec. I'd take it as a spec delta inside 010 rather than splitting it out: the mapping exists only to serve this, and a separate change leaves 010 blocked on one function. Reasonable people would split it for the same reason we split 016 — your call, but say which and write the reason down.
 
 Log one more thing while it's fresh, as a follow-on against evals: CM-4 says a span that doesn't contain the value it claims is a defect, and nothing enforces it. Scoring should verify that body[start:end] == raw_text for every mapped field. That's the check that would have caught this in the first place, and would catch the next offset regression. scoring.py is protected, so it's yours — but it's a small, high-value addition once 010 lands.
+
+
+There's already a provenance_failures slot on FixtureScore that I left unwired. Here's the complete implementation:
+
+Ran 11 commands, created 2 files, edited a file · 4 notes
+
+Paste the block into scoring.py after score_field, add import re and import unicodedata, and apply the wiring notes in the comment at the bottom (FixtureScore.provenance_failures becomes a property over a span_defects list; one extra line in gate()). Tests go in tests/unit/ — not protected, so Copilot can maintain them.
+
+I ran all twelve against your three sample fixtures and injected faults. Clean fixtures give zero defects; shifting every span by 3 — the 010 bug exactly — produced 107.
+
+Four things it catches, and they're genuinely different failures:
+
+mismatch	span holds text the value doesn't claim — the 010 class
+out-of-range	span falls off the end of the body
+missing-provenance	Mapped value with nothing to point at
+whitespace-only	reported, not gated
+
+That last distinction matters. A locator that matched across a line wrap is sloppy, not wrong, and failing a run for it teaches people to skim the list — which is how the real defects get missed.
+
+Two design points worth knowing:
+
+It matches by shape, not by path. Any key named provenance or *_provenance carrying integer offsets gets checked, wherever it sits. So client_asserted_provenance nested inside a Quantity variant is covered, and a field added in a later change is covered without anyone remembering to update this. There's a test for exactly that.
+
+Check actual, not expected. Running it over the fixtures once is a worthwhile corpus health check, but the thing that regresses is the extractor.
+
+One bug I hit writing this, worth repeating because it'll recur: my first version of the test fixture had hand-computed offsets that pointed at the wrong words, and every test still passed — because the helper derived its text from the body at those offsets, so it was internally consistent and wrong. There's now a test that pins the offsets against the literal words. Self-consistent test data is the failure mode this whole check exists to catch, and it caught me writing it.

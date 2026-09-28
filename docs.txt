@@ -434,3 +434,24 @@ Then you git apply it yourself. Same as a contributor without merge rights: they
 One thing in that grouping is worth your own eye: stated_venue: "Japan". The agent flagged it as not fitting any category, and I think that's because it isn't a label gap — it's the model over-reaching. "TRE Holdings in Japan" is describing where the issuer sits, not naming an execution venue. If that reading holds, it's a genuine WRONG_VALUE, and the one real extraction error in the sixty-three.
 
 Which would make the final tally: 2 fabrications from the raw_text/value split, 1 wrong value, 60 label gaps.
+
+
+93.6%, up from 78.3%, with 65 fabrications down to 3 and 52 wrong values down to 14. The loop is working.
+
+The four new items are three different kinds of thing, and only one needs a decision from you.
+
+Code bugs — just fix. The 2 provenance defects are span mismatches; the runner is right that those are always code. No convention question.
+
+Prompt not landing — check before deciding. The 3 fabrications are the same order_type = LIMIT cases 018's Decision 3 was meant to resolve: raw_text carries the client's words, value carries LIMIT. Read prompts/v2.py and confirm the rule is actually in there. If it is and the model is ignoring it, that's prompt iteration, not a new convention — and it's the first real prompt-tuning work you've had.
+
+Three genuine convention questions. My answers:
+
+Ticker exchange suffix is not a stated venue. CSPX LN Equity → stated_venue: LN is wrong, and not just semantically. EN-4 says a client-stated venue is honoured and overrides the resolver's default listing. Treat a ticker suffix as a stated venue and you'd route an order to a venue the client never asked for, on the strength of an identifier they used to name the instrument. Same family as "Japan". Rule: stated_venue is Unresolved unless the client separately says where to execute.
+
+"N.A." is Unmapped, not Mapped and not Unresolved. The client did address validity — they wrote "N.A." — so Unresolved is false. But no TIF value represents "not applicable", so Mapped would force an invented enum. This is exactly what the third state is for, and it's barely been used: UnmappedInstruction with raw_text: "N.A." and a reason. The reviewer then sees the client answered and the schema couldn't hold the answer.
+
+One client phrase maps to at most one field. "over the day" is landing on both horizon and expiry depending on what's blank. Split them by meaning: horizon is how to work the order ("over the day", "market open", "first hour"); expiry is how long the order lives ("day order", "gtc", "good till Friday"). Matches market usage and the phrases stop competing.
+
+Then: write those three into docs/corpus-spec.md, same patch-for-review route, rebuild, re-run.
+
+One thing worth naming — the horizon movement happened because you blanked expiry. Changing labels changes what the model's output collides with, so each pass surfaces a new, smaller set of questions rather than converging in one go. Two or three more rounds like this and you're at the real number.

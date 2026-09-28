@@ -395,3 +395,25 @@ The 18 xfails flip to unexpected-pass. Remove the markers.
 pytest, then re-run the eval.
 
 The reason for that order: build_fixture regenerates from label.yaml, so running it before you relabel means running it twice. And step 2 before step 3 is what stops you making 63 individual judgement calls at midnight.
+
+None of the three. The agent is deriving the 63 from the wrong source.
+
+63 isn't a count of blanks in label.yaml. It's the number of LABEL_DISAGREEMENT entries in report.rescored.json — the cases where the model produced a Mapped value, the label said Unresolved, and the value verified as grounded in the email. That's a three-way intersection, which is why no combination of blank counts lands on it.
+
+The relationship is:
+
+419  blank fields in label.yaml
+     ↓ compile
+419  Unresolved in expected.capture.json
+     ↓ of those, the model produced a grounded value for…
+ 63  LABEL_DISAGREEMENT
+
+The other ~356 are fields where the model also found nothing — so label and model agree, they scored CORRECT, and they never surface as a disagreement. Those aren't work; they're the extractor correctly declining to invent.
+
+Which is worth noticing in its own right: of 419 fields your labellers left blank, the model filled 63 with grounded values and left 356 alone. It isn't over-filling.
+
+Tell it:
+
+The 63 comes from the rescored report, not from surveying label.yaml. Read corpus/runs/<rescored-run>/report.rescored.json, filter entries whose outcome is LABEL_DISAGREEMENT, and group those by field path with counts and one example each. Don't derive it from blank counts — a blank only becomes a disagreement when the model found something grounded for it, which is information only the report has.
+
+That should come back as roughly the four groups: isin/ticker from stated identifiers, expiry from stated TIF text, relative references like today/tonight/market open, and account from phrases like "our account with Priscilla".

@@ -417,3 +417,20 @@ Tell it:
 The 63 comes from the rescored report, not from surveying label.yaml. Read corpus/runs/<rescored-run>/report.rescored.json, filter entries whose outcome is LABEL_DISAGREEMENT, and group those by field path with counts and one example each. Don't derive it from blank counts — a blank only becomes a disagreement when the model found something grounded for it, which is information only the report has.
 
 That should come back as roughly the four groups: isin/ticker from stated identifiers, expiry from stated TIF text, relative references like today/tonight/market open, and account from phrases like "our account with Priscilla".
+
+
+The agent is right to stop, and it's my fault it had to ask — steps 3 and 4 in my plan were written for you, and it read them as instructions to itself.
+
+The rule holds. "Never edit corpus/" isn't a default that a sentence in chat amends; if it were, the guard would only stop an agent that couldn't produce a persuasive sentence. And we settled the mechanics two messages ago: the agent controls build_fixture.py, so agent-writes-labels plus agent-runs-compiler means the agent decides what the expected values are, without touching a protected file directly.
+
+The substantive reason underneath: those 63 are all "the model produced X, the label said nothing." Letting the agent resolve them is the corpus conceding to the model. After that the eval measures agreement between the extractor and itself.
+
+But you don't have to type 63 edits. Middle ground that keeps the control where it belongs:
+
+Write the edits as a patch file to docs/relabel-018.patch — a unified diff against corpus/fixtures/*/label.yaml. Do not apply it, do not run build_fixture.py. I will review and apply it.
+
+Then you git apply it yourself. Same as a contributor without merge rights: they propose, you merge. The condition is that you write the four rules into docs/corpus-spec.md first, so reviewing the patch is checking "does this match my rules" rather than re-deciding 63 times at midnight.
+
+One thing in that grouping is worth your own eye: stated_venue: "Japan". The agent flagged it as not fitting any category, and I think that's because it isn't a label gap — it's the model over-reaching. "TRE Holdings in Japan" is describing where the issuer sits, not naming an execution venue. If that reading holds, it's a genuine WRONG_VALUE, and the one real extraction error in the sixty-three.
+
+Which would make the final tally: 2 fabrications from the raw_text/value split, 1 wrong value, 60 label gaps.

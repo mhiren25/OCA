@@ -380,3 +380,18 @@ There's a pattern in the last three exchanges I'd take seriously. Three confiden
 That's the case for doing LABEL_DISAGREEMENT properly in scoring.py before anything else. A span check in code doesn't get tired at midnight and doesn't grep for the wrong string. Do that first, re-score the existing run — no model calls needed — and you'll have a trustworthy split before you spend a day relabelling against three people's guesses, including mine.
 
 The agent may run python scripts/build_fixture.py corpus/fixtures/ --check, which validates and derives without writing. A rebuild that writes is a human step.
+
+Good result — and the xfail(strict=True) choice is the right one. Those 18 will turn into failures the moment you relabel and rebuild, which forces you to remove the markers rather than leaving stale xfails lying around forever. That's the mechanism working for you.
+
+Order matters for what's next, because one of these steps is expensive to repeat.
+
+Close 018 first (/opsx:verify → /opsx:sync → /opsx:archive). Then:
+
+Get the grouped 63 from the agent — counts per convention, one example each. No verdicts.
+Decide the four rules and write them into docs/corpus-spec.md. Do this before touching any label, so the relabelling is transcription rather than judgement.
+Relabel label.yaml — the 63 previously-blank fields, plus the new name/ticker/isin shape.
+Then python scripts/build_fixture.py corpus/fixtures/ — once.
+The 18 xfails flip to unexpected-pass. Remove the markers.
+pytest, then re-run the eval.
+
+The reason for that order: build_fixture regenerates from label.yaml, so running it before you relabel means running it twice. And step 2 before step 3 is what stops you making 63 individual judgement calls at midnight.

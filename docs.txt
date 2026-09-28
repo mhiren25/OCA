@@ -354,3 +354,10 @@ It matches by shape, not by path. Any key named provenance or *_provenance carry
 Check actual, not expected. Running it over the fixtures once is a worthwhile corpus health check, but the thing that regresses is the extractor.
 
 One bug I hit writing this, worth repeating because it'll recur: my first version of the test fixture had hand-computed offsets that pointed at the wrong words, and every test still passed — because the helper derived its text from the body at those offsets, so it was internally consistent and wrong. There's now a test that pins the offsets against the literal words. Self-consistent test data is the failure mode this whole check exists to catch, and it caught me writing it.
+
+
+The tri-state definitions, written down for the first time. Unresolved means the client said nothing, never present but hard to interpret. That makes trade_date: "today" a Mapped value with raw text — which is the same logic as instrument resolution, just applied to dates and accounts.
+
+That second one is why the relabelling is real work: every fixture where you left trade_date blank because "today" isn't a date now needs it filled in. Human, on protected files, and it should happen in the same pass as the schema rebuild rather than twice.
+
+The scoring.py piece — Outcome.LABEL_DISAGREEMENT for expected-Unresolved / actual-Mapped with a verifying provenance span — is the one I'd do first, by hand, before anything else. It costs ten minutes and it re-reads your existing run instantly: the 65 splits into real fabrications and convention noise without re-calling the model once. Then you'll know whether my 49/16 estimate is right before committing to the rest.

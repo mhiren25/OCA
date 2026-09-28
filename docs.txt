@@ -361,3 +361,20 @@ The tri-state definitions, written down for the first time. Unresolved means the
 That second one is why the relabelling is real work: every fixture where you left trade_date blank because "today" isn't a date now needs it filled in. Human, on protected files, and it should happen in the same pass as the schema rebuild rather than twice.
 
 The scoring.py piece — Outcome.LABEL_DISAGREEMENT for expected-Unresolved / actual-Mapped with a verifying provenance span — is the one I'd do first, by hand, before anything else. It costs ten minutes and it re-reads your existing run instantly: the 65 splits into real fabrications and convention noise without re-calling the model once. Then you'll know whether my 49/16 estimate is right before committing to the rest.
+
+
+Look at line 2 of that email: "Buy USD3mil of the Polar Capital Biotech Fund accumulating share class in portfolio 4".
+
+portfolio 4 is in the email. The agent's check was wrong — and the report says the model put it on lines[1], which is that exact order. It also put portfolio 2 on lines[2], which is the XLF order. Per-line attribution, correct on both.
+
+So that's zero hallucinations in 840 fields. The other two "real" ones are the order_type=LIMIT cases, which are the raw_text-vs-value reporting issue, not invention. The model did not make up a single value.
+
+Ran a command, shared files
+
+Worth sitting with what this actually means. Your extractor read 18 real client emails, produced 840 field values, and invented nothing. It handled a 14-row table row by row, kept portfolio 4 and portfolio 2 on the right lines of a three-order email, and pulled ISINs out of fund tables. The 78.3% and the failed gate were measuring your corpus, not your model.
+
+That's a much better position than the numbers suggested, and it moves the work: the extraction prompt is in decent shape, and the effort belongs in the labels and the scoring definitions.
+
+There's a pattern in the last three exchanges I'd take seriously. Three confident claims were made about what an email contained — my "the expiry values are a TIF default", the agent's "portfolio 4 has zero textual basis", and my own earlier arithmetic on which fabrications were real. Two were wrong, and each was only caught by someone opening the actual email. Nobody was careless; everyone was reasoning from a report instead of the source.
+
+That's the case for doing LABEL_DISAGREEMENT properly in scoring.py before anything else. A span check in code doesn't get tired at midnight and doesn't grep for the wrong string. Do that first, re-score the existing run — no model calls needed — and you'll have a trustworthy split before you spend a day relabelling against three people's guesses, including mine.

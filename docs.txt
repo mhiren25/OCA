@@ -378,3 +378,5 @@ That's a much better position than the numbers suggested, and it moves the work:
 There's a pattern in the last three exchanges I'd take seriously. Three confident claims were made about what an email contained — my "the expiry values are a TIF default", the agent's "portfolio 4 has zero textual basis", and my own earlier arithmetic on which fabrications were real. Two were wrong, and each was only caught by someone opening the actual email. Nobody was careless; everyone was reasoning from a report instead of the source.
 
 That's the case for doing LABEL_DISAGREEMENT properly in scoring.py before anything else. A span check in code doesn't get tired at midnight and doesn't grep for the wrong string. Do that first, re-score the existing run — no model calls needed — and you'll have a trustworthy split before you spend a day relabelling against three people's guesses, including mine.
+
+The agent may run python scripts/build_fixture.py corpus/fixtures/ --check, which validates and derives without writing. A rebuild that writes is a human step.

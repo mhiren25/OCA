@@ -455,3 +455,18 @@ One client phrase maps to at most one field. "over the day" is landing on both h
 Then: write those three into docs/corpus-spec.md, same patch-for-review route, rebuild, re-run.
 
 One thing worth naming — the horizon movement happened because you blanked expiry. Changing labels changes what the model's output collides with, so each pass surfaces a new, smaller set of questions rather than converging in one go. Two or three more rounds like this and you're at the real number.
+
+
+hree of four hard gates green: fabrications 0, provenance defects 0, line recall 100%, at 97.4% exact match. From 78.3% and 65 fabrications a few days ago, and the model never changed — you fixed what the corpus was asking of it.
+
+The two N.A. disagreements are a prompt gap, not a label one. Label says Unmapped, model says Mapped with value N.A. — they agree on the content and disagree on the state. That's the decision landing in the corpus but never reaching the extractor. Prompt v3 needs a rule that's probably never been written, because Unmapped has barely been exercised until now:
+
+If the client stated something for a field but the field's vocabulary cannot represent it, that is Unmapped — record their words and the reason. Do not force it into value, and do not discard it as Unresolved.
+
+Casey Hale needs your call. It's the last one that isn't mechanical. "Our account with Priscilla" reads as naming a relationship; a bare person's name might just be a signature or a mention. Depends what 0024 actually says around it — if the phrasing is "sell X for Casey Hale" it's an account reference, and if it's a cc line it isn't.
+
+The 8 wrong values are now the entire remaining job, and they're a different animal from everything so far. Every previous round was about representation — which slot, which state, whose words. These are the model and the label disagreeing about what the answer is. Some will still turn out to be label errors, but this is the first batch where real extraction errors can hide, so read all eight against their emails rather than grouping them.
+
+They cluster in multi-line (5) and spread across limit-order, strategy-stated, fund-order, isin-stated — so probably two or three causes, not eight.
+
+Once those are settled, commit the baseline. Right now every run is measured against nothing; the moment the corpus is stable, --set-baseline --why "..." turns 97.4% into a ratchet, and the next prompt change has to earn its keep.

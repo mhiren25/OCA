@@ -470,3 +470,61 @@ The 8 wrong values are now the entire remaining job, and they're a different ani
 They cluster in multi-line (5) and spread across limit-order, strategy-stated, fund-order, isin-stated — so probably two or three causes, not eight.
 
 Once those are settled, commit the baseline. Right now every run is measured against nothing; the moment the corpus is stable, --set-baseline --why "..." turns 97.4% into a ratchet, and the next prompt change has to earn its keep.
+
+
+Per email, in order. Do one first and check it scores clean before batching the rest.
+
+bash
+# 1. raw email into the gitignored inbox
+cp /path/to/enquiry.eml corpus/_inbox/
+
+# 2. redact — scan first to see what it will change
+python scripts/redact.py corpus/_inbox/enquiry.eml --scan
+python scripts/redact.py corpus/_inbox/enquiry.eml -o corpus/staging/
+
+# 3. scaffold — continue your numbering (check your last fixture number)
+python scripts/scaffold_fixture.py corpus/staging/enquiry.eml \
+  -o corpus/fixtures/ --start 26
+
+(If redact.py --help shows different flags, follow those — I'm going from memory of what I wrote.)
+
+The scaffolder will still emit one orders: block, because it can't tell. Replace the whole file with this shape:
+
+yaml
+split: dev
+language: en
+
+tags:
+  - negative-enquiry        # or negative-no-order / negative-confirmation
+
+# Applies to every order below unless an order sets its own.
+account:
+
+constraints: []
+
+orders: []
+
+notes: |
+  Client asks what the current position in X is. No instruction to trade.
+
+  Added because the corpus had no negatives at all — every fixture up to
+  0025 contained at least one order, so nothing had ever tested whether the
+  extractor declines to invent one when there is nothing to find.
+
+labelled_by: [shreya]
+disagreements: []
+
+orders: [] plus a negative-* tag is the combination build_fixture.py accepts — it rejects a negative tag with orders present, and orders absent with no negative tag, so it can't be half-done by accident.
+
+bash
+# 4. build
+python scripts/build_fixture.py corpus/fixtures/0026-*
+
+# 5. score just this one
+python -m evals.runner --fixture 0026-<slug>
+
+What to look at: line_precision. For a negative fixture, field scoring has nothing to score — line_recall is 1.0 by definition when zero lines are expected. If the model invents an order, precision is the only place it shows, and precision isn't in your gate. Which means as things stand a negative fixture can fail silently.
+
+So once you have three or four in, add line precision to RunReport.gate() alongside recall. That's a scoring.py edit, yours, and small — and without it the fixtures you're about to add won't actually protect you.
+
+Aim for three or four negatives out of ~22 fixtures to hit CO-8's 15–20%. Pick different shapes if you can: a position enquiry, a confirmation of something already traded, and one that mentions instruments and quantities but asks a question about them rather than instructing. That third one is the real test.

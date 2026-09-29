@@ -528,3 +528,22 @@ What to look at: line_precision. For a negative fixture, field scoring has nothi
 So once you have three or four in, add line precision to RunReport.gate() alongside recall. That's a scoring.py edit, yours, and small — and without it the fixtures you're about to add won't actually protect you.
 
 Aim for three or four negatives out of ~22 fixtures to hit CO-8's 15–20%. Pick different shapes if you can: a position enquiry, a confirmation of something already traded, and one that mentions instruments and quantities but asks a question about them rather than instructing. That third one is the real test.
+
+Option 2 first, and it isn't a policy call — it's a correctness check.
+
+If temperature isn't 0, the same client email produces different draft orders on different days. That's not an eval inconvenience, it's a production property you can't ship in a bank. Confirm it in the 009 provider config now; if it's unset or non-zero, that's a bug, not a tuning knob.
+
+Expect it to help but not fully fix it — most hosted endpoints aren't bit-deterministic even at temperature 0.
+
+Then measure the variance instead of guessing at it. Three to five live runs against the unchanged corpus, record exact_match each time. That's an hour and it turns "a percent or two" into a number. Setting a baseline below an observed ceiling without knowing the spread is just picking a smaller arbitrary number.
+
+But the real answer is that you already built the fix and aren't using it. Cassettes.
+
+Replay run → the gate. Deterministic by construction. A change in the number means a change in your code, because the model's answers are fixed. That's what belongs in CI and what the baseline should measure.
+Live run → the model. Run it periodically, expect variance, compare distributions rather than single numbers. Re-record cassettes deliberately when you accept a new model or prompt.
+
+That dissolves the dilemma. Option 1's failure mode — "re-run before concluding a regression happened" — is exactly how a real regression gets dismissed as flakiness, and you avoid it entirely by gating on something that can't be flaky.
+
+Record the measured live spread in baseline.json alongside the number, so the next person knows what noise looks like without rediscovering it.
+
+One substantive thing in that report: 0024.account_ref giving Casey Hale, then something else, then Unmapped across three runs is the model telling you the email is ambiguous, not that the model is broken. That's the one case where run-to-run disagreement is evidence about the input. Worth reading that email yourself — either the phrasing genuinely supports both readings, in which case the fixture should say so, or your rule for "is a bare name an account reference" needs to be sharper than it currently is.

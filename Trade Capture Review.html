@@ -1,0 +1,742 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Trade Capture Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* Layout: fixed header, agent trace strip, then a two-pane reading surface —
+   source email left, captured orders right, linked by provenance on hover. */
+:root {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface-2: #edf1f5;
+  --fg: #16202e;
+  --fg-dim: #566475;
+  --fg-faint: #93a0af;
+  --line: #dbe2ea;
+  --accent: #1f5fa9;
+  --accent-soft: #e3edf8;
+  --warn: #8d5c06;
+  --warn-soft: #fcf1d9;
+  --ok: #126844;
+  --ok-soft: #e0f1e9;
+  --hl: #ffeea3;
+  --hl-edge: #e0b93c;
+  --dim-veil: rgba(246, 248, 250, 0.74);
+  --font-ui: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141b;
+    --surface: #151d26;
+    --surface-2: #1b2532;
+    --fg: #e3eaf2;
+    --fg-dim: #94a4b6;
+    --fg-faint: #5f6e7d;
+    --line: #26313d;
+    --accent: #6ba7e9;
+    --accent-soft: #192c43;
+    --warn: #ddab54;
+    --warn-soft: #2e2410;
+    --ok: #57c293;
+    --ok-soft: #122a20;
+    --hl: #4d4015;
+    --hl-edge: #8a7426;
+    --dim-veil: rgba(14, 20, 27, 0.72);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141b;
+  --surface: #151d26;
+  --surface-2: #1b2532;
+  --fg: #e3eaf2;
+  --fg-dim: #94a4b6;
+  --fg-faint: #5f6e7d;
+  --line: #26313d;
+  --accent: #6ba7e9;
+  --accent-soft: #192c43;
+  --warn: #ddab54;
+  --warn-soft: #2e2410;
+  --ok: #57c293;
+  --ok-soft: #122a20;
+  --hl: #4d4015;
+  --hl-edge: #8a7426;
+  --dim-veil: rgba(14, 20, 27, 0.72);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- header ---------- */
+header {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.head-in {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-block: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.brand span { color: var(--fg-faint); font-weight: 400; }
+.file {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--fg-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+.head-sp { flex: 1; min-width: 0; }
+button {
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 5px 11px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- agent trace ---------- */
+.trace {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.trace-in { max-width: 1500px; margin: 0 auto; padding-block: 12px 14px; }
+.trace-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.trace-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+.running .pulse { animation: breathe 1.1s ease-in-out infinite; }
+.done .pulse { background: var(--ok); }
+@keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) {
+  .running .pulse { animation: none; }
+}
+.elapsed {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.log {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  display: grid;
+  gap: 2px;
+  max-height: 170px;
+  overflow-y: auto;
+}
+.log-row {
+  display: grid;
+  grid-template-columns: 7.5ch 1fr;
+  gap: 12px;
+  padding: 1px 0;
+  animation: slip 0.22s ease both;
+}
+@keyframes slip { from { opacity: 0; transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .log-row { animation: none; }
+}
+.log-t { color: var(--fg-faint); font-variant-numeric: tabular-nums; }
+.log-m { color: var(--fg-dim); min-width: 0; }
+.log-m b { color: var(--fg); font-weight: 500; }
+.log-m .g { color: var(--ok); }
+.log-m .w { color: var(--warn); }
+
+/* ---------- main grid ---------- */
+main {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-block: 20px 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+}
+.pane-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+  min-height: 24px;
+}
+.pane-label .sp { flex: 1; }
+.toggle {
+  font-size: 12px;
+  color: var(--fg-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.toggle input { accent-color: var(--accent); margin: 0; }
+
+/* ---------- email pane ---------- */
+.email {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.email-meta {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+}
+.email-meta dt { color: var(--fg-faint); }
+.email-meta dd { margin: 0; color: var(--fg-dim); overflow-wrap: anywhere; }
+.body {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.72;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.zone { display: block; position: relative; border-radius: 3px; }
+.zone-live {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+  padding: 7px 10px 7px 13px;
+  margin: 4px -10px;
+}
+.hide-ignored .zone-dead { display: none; }
+.zone-dead {
+  color: var(--fg-faint);
+  opacity: 0.62;
+  padding: 3px 10px;
+  margin: 2px -10px;
+  border-left: 2px dashed var(--line);
+}
+.zone-tag {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-bottom: 1px;
+  white-space: normal;
+}
+.zone-live > .zone-tag { color: var(--accent); }
+
+mark {
+  background: transparent;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  transition: background 0.1s;
+  cursor: default;
+}
+mark.lit {
+  background: var(--hl);
+  box-shadow: 0 0 0 1px var(--hl-edge);
+  color: var(--fg);
+}
+
+/* ---------- order cards ---------- */
+.orders { display: grid; gap: 14px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.idx {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-faint);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex: none;
+}
+.side {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  flex: none;
+}
+.side.buy { background: var(--ok-soft); color: var(--ok); }
+.side.sell { background: var(--warn-soft); color: var(--warn); }
+.card-name { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.chip {
+  margin-left: auto;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex: none;
+}
+.chip.clean { background: var(--ok-soft); color: var(--ok); }
+.chip.review { background: var(--warn-soft); color: var(--warn); }
+
+.fields {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+}
+@media (max-width: 480px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .fields dd { padding-bottom: 8px; }
+}
+.fields dt, .fields dd {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--line);
+  margin: 0;
+  min-width: 0;
+}
+.fields dt { color: var(--fg-dim); }
+.fields dd { overflow-wrap: anywhere; }
+.fields .row-last { border-bottom: 0; }
+.val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px dotted var(--fg-faint);
+  cursor: default;
+}
+.row-lit { background: var(--accent-soft); }
+.unres {
+  color: var(--fg-dim);
+  font-style: italic;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+.unres::before {
+  content: "—";
+  font-style: normal;
+  color: var(--fg-faint);
+}
+.why {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--fg-faint);
+}
+.pend {
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--warn);
+  background: var(--warn-soft);
+  border-radius: 3px;
+  padding: 0 5px;
+  font-style: normal;
+}
+
+.card-foot { padding: 9px 14px; }
+details summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--fg-dim);
+  list-style: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "▸ ";
+  color: var(--fg-faint);
+}
+details[open] summary::before { content: "▾ "; }
+details summary:hover { color: var(--accent); }
+pre {
+  margin: 9px 0 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 11px 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+  color: var(--fg-dim);
+}
+
+.note {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--fg-faint);
+  max-width: 62ch;
+}
+.mock {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+  background: var(--warn-soft);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+</style>
+
+<header>
+  <div class="head-in gutter">
+    <div class="brand">Trade Capture <span>/ review</span></div>
+    <div class="file">eastwind-rebalance-14oct.eml</div>
+    <div class="head-sp"></div>
+    <span class="mock">mock-up</span>
+    <button id="replay" type="button">Run again</button>
+  </div>
+</header>
+
+<section class="trace" id="trace">
+  <div class="trace-in gutter">
+    <div class="trace-head">
+      <span class="pulse"></span>
+      <span class="trace-title" id="trace-title">Agent working</span>
+      <span class="elapsed" id="elapsed">0.00 s</span>
+    </div>
+    <div class="log" id="log" role="log" aria-live="polite" aria-label="Agent trace"></div>
+  </div>
+</section>
+
+<main class="gutter">
+
+  <section>
+    <div class="pane-label">
+      <span>Source email</span>
+      <span class="sp"></span>
+      <label class="toggle"><input type="checkbox" id="hide-ignored"> Hide what was ignored</label>
+    </div>
+
+    <div class="email" id="email">
+      <dl class="email-meta">
+        <dt>From</dt><dd>ops@eastwind-capital.example</dd>
+        <dt>Sent</dt><dd>Thu 14 Oct 2026, 10:58 +0800</dd>
+        <dt>Subject</dt><dd>RE: Portfolio rebalance — Thu</dd>
+      </dl>
+
+      <div class="body" id="body"><span class="zone zone-live"><span class="zone-tag">Live region · lines 3–11 · the agent acts on this</span>Hi team,
+
+Please action the following for us this morning:
+
+Buy <mark data-p="q1">USD3mil</mark> of the <mark data-p="i1">Nestle 1.375% 2029</mark> in <mark data-p="a1">portfolio 4</mark>, <mark data-p="h1">work it over the day</mark>.
+Sell all <mark data-p="q2">(91,647)</mark> of our <mark data-p="i2">Keppel REIT</mark> holding — <mark data-p="t2">good till cancelled</mark>.
+Also add <mark data-p="q3">35,300</mark> <mark data-p="i3">DBS</mark> <mark data-p="p3">at market</mark>.
+
+Thanks
+Mei Ling</span><span class="zone zone-dead"><span class="zone-tag">Signature · dropped</span>--
+Mei Ling Tan
+Head of Operations | Eastwind Capital Pte Ltd
+T +65 6xxx xxxx | M +65 9xxx xxxx</span><span class="zone zone-dead"><span class="zone-tag">Quoted thread · dropped</span>&gt; From: desk@bank.example
+&gt; Sent: Wednesday, 13 October 2026 17:42
+&gt; Subject: Portfolio rebalance — Thu
+&gt;
+&gt; Hi Mei Ling,
+&gt;
+&gt; Following our call, confirming we are ready to take instructions
+&gt; tomorrow morning for the rebalance. Please send through by 11am
+&gt; SGT so we have time to work the larger lines.
+&gt;
+&gt; Best,
+&gt; Jonathan</span><span class="zone zone-dead"><span class="zone-tag">Disclaimer · dropped</span>This message and any attachments are confidential and intended
+solely for the addressee. If you have received this in error please
+notify the sender and delete it. Eastwind Capital Pte Ltd is
+regulated by the Monetary Authority of Singapore. Any views
+expressed are those of the author and do not necessarily reflect
+those of the firm.</span></div>
+    </div>
+    <p class="note">47 lines in, 9 acted on. Hover any captured value to see the words it came from.</p>
+  </section>
+
+  <section>
+    <div class="pane-label">
+      <span>Captured orders — 3 drafts</span>
+      <span class="sp"></span>
+      <span class="toggle">2 items need a human</span>
+    </div>
+
+    <div class="orders">
+
+      <article class="card">
+        <div class="card-head">
+          <span class="idx">1</span>
+          <span class="side buy">BUY</span>
+          <span class="card-name">Nestlé 1.375% 2029</span>
+          <span class="chip review">1 to check</span>
+        </div>
+        <dl class="fields">
+          <dt>Instrument, as written</dt>
+          <dd><span class="val" data-p="i1">Nestle 1.375% 2029</span></dd>
+          <dt>ISIN</dt>
+          <dd><span class="unres">not looked up yet <span class="pend">instrument service pending</span></span></dd>
+          <dt>Cash amount</dt>
+          <dd><span class="val" data-p="q1">USD 3,000,000</span></dd>
+          <dt>Quantity</dt>
+          <dd><span class="unres">the client gave a cash amount, not a quantity</span></dd>
+          <dt>Account</dt>
+          <dd><span class="val" data-p="a1">portfolio 4</span> → matched to ipid 4418207</dd>
+          <dt>How to work it</dt>
+          <dd><span class="val" data-p="h1">over the day</span></dd>
+          <dt>Limit price</dt>
+          <dd><span class="unres">the client did not specify a price</span></dd>
+          <dt class="row-last">Good until</dt>
+          <dd class="row-last">end of today <span class="why">(default — the client did not say)</span></dd>
+        </dl>
+        <div class="card-foot">
+          <details>
+            <summary>Order payload</summary>
+<pre>{
+  "externalOrderReference": "TCA-01K7Y3QD8M-0",
+  "side": "BUY",
+  "instrument": { "description": "Nestle 1.375% 2029" },
+  "cashAmount": { "amount": 3000000, "currency": "USD" },
+  "accountIpid": "4418207",
+  "execInstructions": "work over the day",
+  "timeInForce": "DAY"
+}</pre>
+          </details>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <span class="idx">2</span>
+          <span class="side sell">SELL</span>
+          <span class="card-name">Keppel REIT</span>
+          <span class="chip review">1 to check</span>
+        </div>
+        <dl class="fields">
+          <dt>Instrument, as written</dt>
+          <dd><span class="val" data-p="i2">Keppel REIT</span></dd>
+          <dt>ISIN</dt>
+          <dd><span class="unres">not looked up yet <span class="pend">instrument service pending</span></span></dd>
+          <dt>Quantity</dt>
+          <dd><span class="val" data-p="q2">91,647</span> <span class="why">(entire position, figure stated by the client)</span></dd>
+          <dt>Account</dt>
+          <dd><span class="unres">the client did not name an account, and none of the 2 supplied matched</span></dd>
+          <dt>Limit price</dt>
+          <dd><span class="unres">the client did not specify a price</span></dd>
+          <dt class="row-last">Good until</dt>
+          <dd class="row-last"><span class="val" data-p="t2">cancelled</span></dd>
+        </dl>
+        <div class="card-foot">
+          <details>
+            <summary>Order payload</summary>
+<pre>{
+  "externalOrderReference": "TCA-01K7Y3QD8M-1",
+  "side": "SELL",
+  "instrument": { "description": "Keppel REIT" },
+  "orderQty": 91647,
+  "timeInForce": "GTC"
+}</pre>
+          </details>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <span class="idx">3</span>
+          <span class="side buy">BUY</span>
+          <span class="card-name">DBS</span>
+          <span class="chip clean">nothing to check</span>
+        </div>
+        <dl class="fields">
+          <dt>Instrument, as written</dt>
+          <dd><span class="val" data-p="i3">DBS</span></dd>
+          <dt>Quantity</dt>
+          <dd><span class="val" data-p="q3">35,300</span></dd>
+          <dt>Limit price</dt>
+          <dd><span class="val" data-p="p3">market</span></dd>
+          <dt>Account</dt>
+          <dd>ipid 4418207 <span class="why">(only one supplied account remained)</span></dd>
+          <dt class="row-last">Good until</dt>
+          <dd class="row-last">end of today <span class="why">(default — the client did not say)</span></dd>
+        </dl>
+        <div class="card-foot">
+          <details>
+            <summary>Order payload</summary>
+<pre>{
+  "externalOrderReference": "TCA-01K7Y3QD8M-2",
+  "side": "BUY",
+  "instrument": { "description": "DBS" },
+  "orderQty": 35300,
+  "price": 0.0,
+  "accountIpid": "4418207",
+  "timeInForce": "DAY"
+}</pre>
+          </details>
+        </div>
+      </article>
+
+    </div>
+    <p class="note">Nothing here is submitted. These are drafts; a person files them from the order screen.</p>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var ENTRIES = [
+    [0,    'Parsed <b>.eml</b> — 1 part, text/plain, 4.2 KB'],
+    [40,   'Live region: <b>lines 3–11 of 47</b> — dropped quoted thread, signature, disclaimer'],
+    [60,   'Prompt built — email body framed as untrusted data'],
+    [180,  'Calling model <b>gpt-4.1</b> · temperature 0'],
+    [4760, 'Model responded in <b>4,580 ms</b>'],
+    [4790, 'Captured <b>3 order intents</b>'],
+    [4810, 'Provenance verified — <span class="g">23 of 23 spans match the source</span>'],
+    [4840, 'Accounts: 2 ipids supplied, <b>1 matched</b> by rule, <span class="w">1 unresolved</span>'],
+    [4880, 'Mapped <b>3 OrderRequests</b> — <span class="g">deny-list clean</span>'],
+    [4910, 'Fields the client did not specify: <b>5</b> — left unset, never guessed'],
+    [4930, '<span class="w">2 items need a human</span> · nothing submitted']
+  ];
+
+  var log = document.getElementById("log");
+  var trace = document.getElementById("trace");
+  var title = document.getElementById("trace-title");
+  var elapsed = document.getElementById("elapsed");
+  var replay = document.getElementById("replay");
+  var SPEED = 0.42;
+  var timers = [];
+  var tick = null;
+
+  function fmt(ms) {
+    var s = ms / 1000;
+    return s.toFixed(2) + " s";
+  }
+
+  function run() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    if (tick) clearInterval(tick);
+    log.textContent = "";
+    trace.classList.remove("done");
+    trace.classList.add("running");
+    title.textContent = "Agent working";
+    var t0 = Date.now();
+
+    tick = setInterval(function () {
+      var shown = Math.min(Date.now() - t0, ENTRIES[ENTRIES.length - 1][0] * SPEED) / SPEED;
+      elapsed.textContent = fmt(shown);
+    }, 60);
+
+    ENTRIES.forEach(function (e) {
+      timers.push(setTimeout(function () {
+        var row = document.createElement("div");
+        row.className = "log-row";
+        var t = document.createElement("span");
+        t.className = "log-t";
+        t.textContent = (e[0] / 1000).toFixed(3);
+        var m = document.createElement("span");
+        m.className = "log-m";
+        m.innerHTML = e[1];
+        row.appendChild(t);
+        row.appendChild(m);
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+      }, e[0] * SPEED));
+    });
+
+    timers.push(setTimeout(function () {
+      clearInterval(tick);
+      elapsed.textContent = fmt(ENTRIES[ENTRIES.length - 1][0]);
+      trace.classList.remove("running");
+      trace.classList.add("done");
+      title.textContent = "Done — 3 drafts";
+    }, ENTRIES[ENTRIES.length - 1][0] * SPEED + 140));
+  }
+
+  replay.addEventListener("click", run);
+
+  /* provenance: hover either side, both light up */
+  function lit(key, on) {
+    var sel = '[data-p="' + key + '"]';
+    document.querySelectorAll(sel).forEach(function (el) {
+      if (el.tagName === "MARK") {
+        el.classList.toggle("lit", on);
+      } else {
+        var row = el.closest("dd");
+        if (row) {
+          row.classList.toggle("row-lit", on);
+          var dt = row.previousElementSibling;
+          if (dt) dt.classList.toggle("row-lit", on);
+        }
+      }
+    });
+  }
+  document.addEventListener("mouseover", function (ev) {
+    var el = ev.target.closest("[data-p]");
+    if (el) lit(el.getAttribute("data-p"), true);
+  });
+  document.addEventListener("mouseout", function (ev) {
+    var el = ev.target.closest("[data-p]");
+    if (el) lit(el.getAttribute("data-p"), false);
+  });
+
+  document.getElementById("hide-ignored").addEventListener("change", function (ev) {
+    document.getElementById("body").classList.toggle("hide-ignored", ev.target.checked);
+  });
+
+  run();
+})();
+</script>
+
+</body></html>

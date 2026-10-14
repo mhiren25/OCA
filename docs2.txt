@@ -1,0 +1,20 @@
+your field and file names (lines vs orders for the order array, how tags are written in label.yaml, what the source email is called). It falls back and prints what it found rather than failing silently, so if a column comes out all zeros that's the guess being wrong, not your corpus. Tell me what it prints and I'll fix it.
+
+Two of the four need your eye rather than the script's:
+
+"longest" — the script picks most lines, but the case that actually stresses the left pane is the most boilerplate wrapped around the shortest live region. Check the table and override it if a different fixture fits that better.
+"non-english" — if nothing is tagged, that's a coverage gap, not a fixture to pick. Leave it out and let it be one of the first things you ask the domain experts for.
+
+2. Write them in. In the 021 change's proposal, replace the four descriptive bullets under The visual test set with the real ids:
+
+markdown
+### The visual test set
+
+Judged against these four, at desktop and at phone width:
+
+- `0005` — widest: 14-row table
+- `0012` — longest: 41 lines of quoted thread around a 6-line live region
+- `0021` — emptiest: 9 unresolved fields across 2 orders
+- `0017` — non-English
+
+That's the whole mechanism. The reason it matters is that it converts "full visual design" from a judgement nobody can fail into four named files that either render legibly or don't — which is what stops it sliding past 021 the way it slid past 020.

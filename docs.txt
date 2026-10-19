@@ -547,3 +547,7 @@ That dissolves the dilemma. Option 1's failure mode — "re-run before concludin
 Record the measured live spread in baseline.json alongside the number, so the next person knows what noise looks like without rediscovering it.
 
 One substantive thing in that report: 0024.account_ref giving Casey Hale, then something else, then Unmapped across three runs is the model telling you the email is ambiguous, not that the model is broken. That's the one case where run-to-run disagreement is evidence about the input. Worth reading that email yourself — either the phrasing genuinely supports both readings, in which case the fixture should say so, or your rule for "is a bare name an account reference" needs to be sharper than it currently is.
+
+
+
+docs/guardrails.md is an unverified inventory written from the proposals, not from the code. Verify it. For every row marked ✓, find the code that implements it and the test that proves it, and record file:line for both. Where you cannot find an implementation, or find one with no test, say so — do not fix anything and do not open a change. For the rows marked ? and POLICY?, answer the question from the code. Output a corrected version of the file.

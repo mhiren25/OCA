@@ -1,0 +1,62 @@
+The script
+0:00–0:12 · The problem, in their words
+
+A client emails an order. Someone reads it, works out what it says, and retypes it into the order screen. Every time. This is that step.
+
+Screen: the email, nothing else.
+
+0:12–0:30 · The email as it really arrives
+
+This is what one actually looks like. Forwarded twice, a signature, a disclaimer, and the instruction is three lines in the middle.
+
+Screen: scroll the email so they see the mess.
+
+I'm pasting it in here. In production this comes from the mailbox — that connection is the next piece of work.
+
+Say that line and move on. Owning the gap in one sentence costs four seconds; being asked about it later costs the room.
+
+0:30–0:52 · The capture
+
+It's reading it now. Parsing the message, finding the part that's actually an instruction, calling the model, checking its work.
+
+Screen: the trace filling in. Let it run — it is more interesting than a spinner and it fills the pause naturally.
+
+Three orders, about ten seconds.
+
+0:52–1:15 · Why it can be trusted — the two beats that matter
+
+The first thing it does is decide what to ignore.
+
+Screen: toggle the ignored regions. Let it sit for two seconds.
+
+The quoted thread, the signature, the disclaimer — all discarded. It acted on nine lines out of forty-seven. It isn't reading the whole email and hoping.
+
+Screen: hover a value so the source highlights.
+
+And every value points back at the words that produced it. This quantity came from here. Nothing in this draft is here because the model thought it sounded right.
+
+This view is how we check the agent's work. Whether it belongs inside the order screen is a question for you.
+
+Say that second line. This page is a testing tool and 029 removes it in production, so demonstrating it without framing sets an expectation you would later have to withdraw. Framed as a question it becomes a product conversation instead — and if they ask for the provenance view inside Topaz, that is a much better outcome than proposing it yourself.
+
+Keep the distinction clear while you say it: the page is the host, the hover-to-source rendering is the capability. The page will not be in production. The capability could sit in the order screen tomorrow.
+
+1:15–1:30 · What it refuses to do
+
+Screen: an unresolved field.
+
+Where the client didn't say something, it says so. It doesn't guess a price and it doesn't pick an account. Across the whole test set it has never invented a value — that's measured, not asserted.
+
+Optional, if the figure is current: > Field accuracy is [your current number] on [n] real emails.
+
+1:30–2:00 · The payoff — the order is already in Topaz
+
+Screen: switch to the order screen. Open the order.
+
+And it's already here. This is the same screen your traders use, with the order in it — instrument, quantity, account, all of it.
+
+Let them look at it for a beat. This is the moment the demo exists for.
+
+Nothing has been submitted. It's a draft. A person opens it, checks it, and sends it — exactly as they do today. The agent does the reading and the typing; the decision stays where it is.
+
+The one piece left is the mailbox connection at the front. We've designed it — the mockups are in the email with this. Everything after that works.
